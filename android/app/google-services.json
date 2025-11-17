@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "373599257522",
+    "project_id": "mercadinho-vinicius",
+    "storage_bucket": "mercadinho-vinicius.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:373599257522:android:a0c2e95a2f7ad98c8b9aab",
+        "android_client_info": {
+          "package_name": "com.example.avaliacao"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDixTEHOaxiUskpD1Xfab-AnTjKb-fhsYE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

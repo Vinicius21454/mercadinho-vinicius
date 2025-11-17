@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
-import 'login.dart'; // 👈 importa sua tela de login
-// se quiser já importar a home também:
-// import 'home.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'login.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
-} 
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false, // tira a faixa "debug"
-      title: 'Mercadinho do Vinícius',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-      ),
-      home: const LoginPage(), // 👈 primeira tela será o login
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: LoginPage(),
     );
   }
 }
