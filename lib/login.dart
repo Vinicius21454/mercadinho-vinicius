@@ -98,6 +98,11 @@ class _LoginPageState extends State<LoginPage> {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green[700],
+
+                      // 🔥 Borda menor
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     onPressed: loginFirebase,
                     child: const Text(
@@ -121,25 +126,30 @@ class _LoginPageState extends State<LoginPage> {
       children: [
         Text(label,
             style: const TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 15)),
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+            )),
         const SizedBox(height: 6),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: TextField(
-            controller: ctrl,
-            obscureText: senha,
-            decoration: InputDecoration(
-              prefixIcon: Icon(icon),
-              border: InputBorder.none,
-              hintText: label,
-              hintStyle: const TextStyle(fontSize: 16, color: Colors.grey),
-              contentPadding: const EdgeInsets.symmetric(vertical: 18),
+
+        TextField(
+          controller: ctrl,
+          obscureText: senha,
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon),
+            hintText: label,
+            filled: true,
+            fillColor: const Color.fromARGB(255, 218, 217, 217),
+
+            // 🔥 MESMA BORDA DO BOTÃO
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide.none,
             ),
+
+            hintStyle: const TextStyle(fontSize: 16, color: Colors.grey),
+            contentPadding: const EdgeInsets.symmetric(vertical: 18),
           ),
-        )
+        ),
       ],
     );
   }
