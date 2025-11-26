@@ -4,64 +4,64 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:avaliacao/login.dart';
 import 'package:avaliacao/produtos_page.dart';
 
-class HomePage extends StatefulWidget {
-  final String? nomeUsuario;
+  class HomePage extends StatefulWidget {
+    final String? nomeUsuario;
 
-  const HomePage({super.key, this.nomeUsuario});
+    const HomePage({super.key, this.nomeUsuario});
 
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  String nomeUsuario = "Carregando...";
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.nomeUsuario != null && widget.nomeUsuario!.trim().isNotEmpty) {
-      nomeUsuario = widget.nomeUsuario!;
-    } else {
-      carregarNome();
-    }
+    @override
+    State<HomePage> createState() => _HomePageState();
   }
 
-  Future<void> carregarNome() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        setState(() => nomeUsuario = "Usuário");
-        return;
-      }
+  class _HomePageState extends State<HomePage> {
+    String nomeUsuario = "Carregando...";
 
-      final uid = user.uid;
-
-      Map<String, String> nomesFixos = {
-        "5zBGoxaqHjVig7QABIfkIeH8dL52": "Gustavo",
-        "oS5RfqXjMZVNHN2amWo31uqkNDg2": "Eloisa",
-        "cnWMSDLZqcPbapNmWZQ6q6n8MRD3": "Nicolas",
-        "Eh5JoyADLKQCt2kQxWn93kCvrRZ2": "Vinicius",
-      };
-
-      if (nomesFixos.containsKey(uid)) {
-        setState(() => nomeUsuario = nomesFixos[uid]!);
-        return;
-      }
-
-      final doc = await FirebaseFirestore.instance
-          .collection("usuarios")
-          .doc(uid)
-          .get();
-
-      if (doc.exists && doc.data() != null && doc.data()!.containsKey("nome")) {
-        setState(() => nomeUsuario = doc.get("nome"));
+    @override
+    void initState() {
+      super.initState();
+      if (widget.nomeUsuario != null && widget.nomeUsuario!.trim().isNotEmpty) {
+        nomeUsuario = widget.nomeUsuario!;
       } else {
+        carregarNome();
+      }
+    }
+
+    Future<void> carregarNome() async {
+      try {
+        final user = FirebaseAuth.instance.currentUser;
+        if (user == null) {
+          setState(() => nomeUsuario = "Usuário");
+          return;
+        }
+
+        final uid = user.uid;
+
+        Map<String, String> nomesFixos = {
+          "5zBGoxaqHjVig7QABIfkIeH8dL52": "Gustavo",
+          "oS5RfqXjMZVNHN2amWo31uqkNDg2": "Eloisa",
+          "cnWMSDLZqcPbapNmWZQ6q6n8MRD3": "Nicolas",
+          "Eh5JoyADLKQCt2kQxWn93kCvrRZ2": "Vinicius",
+        };
+
+        if (nomesFixos.containsKey(uid)) {
+          setState(() => nomeUsuario = nomesFixos[uid]!);
+          return;
+        }
+
+        final doc = await FirebaseFirestore.instance
+            .collection("usuarios")
+            .doc(uid)
+            .get();
+
+        if (doc.exists && doc.data() != null && doc.data()!.containsKey("nome")) {
+          setState(() => nomeUsuario = doc.get("nome"));
+        } else {
+          setState(() => nomeUsuario = "Usuário");
+        }
+      } catch (e) {
         setState(() => nomeUsuario = "Usuário");
       }
-    } catch (e) {
-      setState(() => nomeUsuario = "Usuário");
     }
-  }
 
   // ===========================================================
   // build

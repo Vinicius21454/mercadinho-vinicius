@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:avaliacao/login.dart';
+import 'carrinho.dart';
+
 
 class ProdutosPage extends StatefulWidget {
   const ProdutosPage({super.key});
@@ -51,6 +53,60 @@ class _ProdutosPageState extends State<ProdutosPage> {
     }
   }
 
+  // Ícone com fundo verde
+  Widget getIconeProduto(String nome) {
+    nome = nome.toLowerCase();
+    Icon icone;
+
+    if (nome.contains("arroz")) {
+      icone = const Icon(Icons.rice_bowl, color: Color(0xFF3E9C5C), size: 24);
+    } else if (nome.contains("feijão") || nome.contains("feijao")) {
+      icone = const Icon(Icons.eco, size: 24, color: Color(0xFF3E9C5C));
+    } else if (nome.contains("carne")) {
+      icone = const Icon(Icons.set_meal, size: 24, color: Color(0xFF3E9C5C));
+    } else if (nome.contains("leite")) {
+      icone = const Icon(Icons.local_drink, size: 24, color: Color(0xFF3E9C5C));
+    } else {
+      icone = const Icon(Icons.shopping_basket, size: 24, color: Color(0xFF3E9C5C));
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: const BoxDecoration(
+        color: Color(0xFFBFF5D2),
+        shape: BoxShape.circle,
+      ),
+      child: icone,
+    );
+  }
+
+  // -----------------------------------------------------------
+  // 🔥 ADICIONAR AO CARRINHO
+  // -----------------------------------------------------------
+  Future<void> adicionarAoCarrinho(String id, String nome, double preco) async {
+    String uid = FirebaseAuth.instance.currentUser!.uid;
+
+    final ref = FirebaseFirestore.instance
+        .collection("carrinho")
+        .doc(uid)
+        .collection("itens")
+        .doc(id);
+
+    final doc = await ref.get();
+
+    if (doc.exists) {
+      await ref.update({
+        "quantidade": doc["quantidade"] + 1,
+      });
+    } else {
+      await ref.set({
+        "nome": nome,
+        "preco": preco,
+        "quantidade": 1,
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,7 +114,7 @@ class _ProdutosPageState extends State<ProdutosPage> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          buildCabecalho(),
+          buildHeader(),
           buildTituloEFiltragem(),
           Expanded(child: buildListaProdutos()),
         ],
@@ -66,40 +122,38 @@ class _ProdutosPageState extends State<ProdutosPage> {
     );
   }
 
-  Widget buildCabecalho() {
+  // -----------------------------------------------------------
+  // HEADER
+  // -----------------------------------------------------------
+  Widget buildHeader() {
     return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
           colors: [Color(0xFF3E9C5C), Color(0xFF33C561)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: SafeArea(
         child: Row(
           children: [
             Container(
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.white.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(10),
               ),
-              padding: const EdgeInsets.all(8),
-              child: const Icon(Icons.shopping_cart, color: Colors.white, size: 30),
+              child: const Icon(Icons.shopping_cart, color: Colors.white, size: 28),
             ),
+
             const SizedBox(width: 12),
+
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Mercadinho do Vinicius',
+                  "Mercadinho do Vinicius",
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 22,
@@ -108,16 +162,18 @@ class _ProdutosPageState extends State<ProdutosPage> {
                 ),
                 Text(
                   nomeUsuario,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 15,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 14,
                   ),
                 ),
               ],
             ),
+
             const Spacer(),
+
             IconButton(
-              icon: const Icon(Icons.logout, color: Colors.white),
+              icon: const Icon(Icons.logout, color: Colors.white, size: 28),
               onPressed: () {
                 FirebaseAuth.instance.signOut();
                 Navigator.pushReplacement(
@@ -137,8 +193,8 @@ class _ProdutosPageState extends State<ProdutosPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
+        children: const [
+          Text(
             "Produtos",
             style: TextStyle(
               fontSize: 22,
@@ -146,76 +202,38 @@ class _ProdutosPageState extends State<ProdutosPage> {
               color: Colors.black87,
             ),
           ),
-          const SizedBox(height: 4),
-          const Text(
+
+          SizedBox(height: 4),
+
+          Text(
             "Selecione produtos para adicionar ao carrinho",
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.black54,
-            ),
-          ),
-          const SizedBox(height: 12),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                buildCategoriaBotao("Todos", true),
-                buildCategoriaBotao("Grãos", false),
-                buildCategoriaBotao("Óleos", false),
-                buildCategoriaBotao("Açúcares", false),
-                buildCategoriaBotao("Bebidas", false),
-              ],
-            ),
+            style: TextStyle(fontSize: 15, color: Colors.black54),
           ),
         ],
       ),
     );
   }
 
-  Widget buildCategoriaBotao(String nome, bool selecionado) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      child: ElevatedButton(
-        onPressed: () {
-          // Aqui você pode implementar a lógica de filtragem por categoria
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: selecionado ? const Color(0xFF3E9C5C) : Colors.grey[300],
-          foregroundColor: selecionado ? Colors.white : Colors.black87,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-        ),
-        child: Text(nome),
-      ),
-    );
-  }
-
+  // -----------------------------------------------------------
+  // LISTA DE PRODUTOS + PREÇO
+  // -----------------------------------------------------------
   Widget buildListaProdutos() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('produtos').snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return const Center(child: Text("Erro ao carregar produtos"));
-        }
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
 
         final produtos = snapshot.data!.docs;
-
-        if (produtos.isEmpty) {
-          return const Center(child: Text("Nenhum produto disponível"));
-        }
 
         return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           itemCount: produtos.length,
           itemBuilder: (context, index) {
             final produto = produtos[index];
-            final nome = produto['nome'] ?? 'Sem nome';
+            final nome = produto["nome"] ?? "Sem nome";
+            final preco = (produto["preco"] ?? 0).toDouble();
 
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
@@ -233,19 +251,38 @@ class _ProdutosPageState extends State<ProdutosPage> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.shopping_basket, color: Color(0xFF3E9C5C)),
+                  getIconeProduto(nome),
                   const SizedBox(width: 12),
+
                   Expanded(
-                    child: Text(
-                      nome,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          nome,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+                        const SizedBox(height: 4),
+
+                        Text(
+                          "R\$ ${preco.toStringAsFixed(2)}",
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+
                   ElevatedButton(
                     onPressed: () {
+                      adicionarAoCarrinho(produto.id, nome, preco);
+
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text("$nome adicionado ao carrinho"),
@@ -255,12 +292,15 @@ class _ProdutosPageState extends State<ProdutosPage> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF3E9C5C),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(5),
                       ),
                     ),
-                    child: const Text("Adicionar", style: TextStyle(color: Colors.white)),
+                    child: const Text(
+                      "Adicionar",
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ],
               ),

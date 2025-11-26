@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home.dart';
 import 'produtos_page.dart';
-// import 'carrinho.dart';
+import 'carrinho.dart';
 // import 'estoque.dart';
 
 class NavigationPage extends StatefulWidget {
@@ -17,7 +17,7 @@ class _NavigationPageState extends State<NavigationPage> {
   final List<Widget> paginas = const [
     HomePage(),
     ProdutosPage(),
-    // CarrinhoPage(),
+    CarrinhoPage(),
     // EstoquePage(),
   ];
 
