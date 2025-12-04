@@ -106,23 +106,59 @@ class _CarrinhoPageState extends State<CarrinhoPage> {
     return total;
   }
 
+  /// Método POST no mesmo estilo do removerItem
+ Future<void> finalizarCompra(List<QueryDocumentSnapshot> itens) async {
+  final uid = FirebaseAuth.instance.currentUser!.uid;
+
+  // Cria documento da compra
+  final compraDoc = await FirebaseFirestore.instance
+      .collection("compras")
+      .doc(uid)
+      .collection("pedidos")
+      .add({
+        "data": DateTime.now(),
+        "nomeUsuario": nomeUsuario,
+      });
+
+  // Para cada item, cria um documento na subcoleção "itens"
+  for (var doc in itens) {
+    final data = doc.data() as Map<String, dynamic>;
+    await compraDoc.collection("itens").add({
+      "nome": data["nome"],
+      "preco": data["preco"],
+      "quantidade": data["quantidade"],
+    });
+
+    // opcional: remover do carrinho
+    await doc.reference.delete();
+  }
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text("Compra finalizada com sucesso!")),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(90),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFF43A047),
-                Color(0xFF66BB6A),
-              ],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF3E9C5C), Color(0xFF33C561)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: SafeArea(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -143,6 +179,7 @@ class _CarrinhoPageState extends State<CarrinhoPage> {
                     ),
                     const SizedBox(width: 12),
                     Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
@@ -164,26 +201,19 @@ class _CarrinhoPageState extends State<CarrinhoPage> {
                     ),
                   ],
                 ),
-
                 IconButton(
                   onPressed: () async {
                     await FirebaseAuth.instance.signOut();
                     Navigator.of(context).pushReplacementNamed("/login");
                   },
-                  icon: const Icon(
-                    Icons.logout,
-                    color: Colors.white,
-                    size: 26,
-                  ),
+                  icon: const Icon(Icons.logout, color: Colors.white, size: 26),
                 ),
               ],
             ),
           ),
         ),
       ),
-
       backgroundColor: Colors.grey[100],
-
       body: StreamBuilder<QuerySnapshot>(
         stream: getCarrinhoStream(),
         builder: (context, snapshot) {
@@ -240,11 +270,13 @@ class _CarrinhoPageState extends State<CarrinhoPage> {
                               borderRadius: BorderRadius.circular(14),
                             ),
                             padding: const EdgeInsets.all(12),
-                            child: const Icon(Icons.shopping_bag,
-                                color: Colors.green, size: 28),
+                            child: const Icon(
+                              Icons.shopping_bag,
+                              color: Colors.green,
+                              size: 28,
+                            ),
                           ),
                           const SizedBox(width: 12),
-
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -259,36 +291,40 @@ class _CarrinhoPageState extends State<CarrinhoPage> {
                                 Text(
                                   "R\$ ${preco.toStringAsFixed(2)}",
                                   style: const TextStyle(
-                                      fontSize: 14, color: Colors.black54),
+                                    fontSize: 14,
+                                    color: Colors.black54,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-
                           Row(
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.remove_circle,
-                                    color: Colors.red),
+                                icon: const Icon(
+                                  Icons.remove_circle,
+                                  color: Colors.red,
+                                ),
                                 onPressed: () =>
                                     atualizarQuantidade(item.id, qtd - 1),
                               ),
                               Text(
                                 qtd.toString(),
                                 style: const TextStyle(
-                                  fontSize: 16,
+                                                                    fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.add_circle,
-                                    color: Colors.green),
+                                icon: const Icon(
+                                  Icons.add_circle,
+                                  color: Colors.green,
+                                ),
                                 onPressed: () =>
                                     atualizarQuantidade(item.id, qtd + 1),
                               ),
                             ],
                           ),
-
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () => removerItem(item.id),
@@ -299,29 +335,104 @@ class _CarrinhoPageState extends State<CarrinhoPage> {
                   },
                 ),
               ),
-
+              // Container de resumo do carrinho
               Container(
-                padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                margin: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF3E9C5C), Color(0xFF33C561)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: [
-                    BoxShadow(color: Colors.black12, blurRadius: 6),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
                   ],
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
-                      "TOTAL",
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Subtotal",
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                        Text(
+                          "R\$ ${total.toStringAsFixed(2)}",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      "R\$ ${total.toStringAsFixed(2)}",
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF43A047),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        Text(
+                          "Taxa de entrega",
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                        Text(
+                          "Grátis",
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                      ],
+                    ),
+                    const Divider(color: Colors.white54, height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Total",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          "R\$ ${total.toStringAsFixed(2)}",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        await finalizarCompra(itens);
+                      },
+                      icon: const Icon(Icons.shopping_bag_outlined, size: 16),
+                      label: const Text(
+                        "Finalizar Pedido",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF2E7D32),
+                        minimumSize: const Size(10, 36),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 4,
+                          horizontal: 8,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
                       ),
                     ),
                   ],
@@ -334,3 +445,4 @@ class _CarrinhoPageState extends State<CarrinhoPage> {
     );
   }
 }
+

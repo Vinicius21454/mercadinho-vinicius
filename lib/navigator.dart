@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'home.dart';
 import 'produtos_page.dart';
 import 'carrinho.dart';
-// import 'estoque.dart';
 
 class NavigationPage extends StatefulWidget {
   const NavigationPage({super.key});
@@ -18,7 +17,6 @@ class _NavigationPageState extends State<NavigationPage> {
     HomePage(),
     ProdutosPage(),
     CarrinhoPage(),
-    // EstoquePage(),
   ];
 
   @override
@@ -48,10 +46,6 @@ class _NavigationPageState extends State<NavigationPage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.shopping_cart),
             label: "Carrinho",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.store),
-            label: "Estoque",
           ),
         ],
       ),
